@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const scene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(1000, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(1000, window.innerWidth / window.innerHeight, 0.1, 10000);
 camera.position.z = 200;
 
 const rootElement = document.getElementById("space");
@@ -24,19 +24,30 @@ const planet = new THREE.Mesh(planetGeometry, planetMaterial);
 
 scene.add(planet);
 
-const pointLight = new THREE.PointLight(0xffffff, 1000);
-pointLight.position.set(60, 60, 60);
-scene.add(pointLight);
+// const pointLight = new THREE.PointLight(0xffffff, 1000);
+
+// const pointLightDistance = 75;
+// pointLight.position.set(pointLightDistance, pointLightDistance, pointLightDistance);
+// scene.add(pointLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+scene.add(directionalLight)
 
 
 function randomRange(a, b) {
     return Math.random() * (b - a) + a;
 }
 
+function randomSign() {
+    return Math.random() > 0.5 ? 1 : -1;
+}
+
 function generateSphericalCoords(rMin, rMax) {
     const rho = randomRange(rMin, rMax);
     const theta = randomRange(0, 2 * Math.PI);
-    const phi = randomRange(0, 1 * Math.PI);
+    // const phi = randomRange(0, 1 * Math.PI);
+
+    const phi = Math.acos(randomRange(0, 1));
 
     return [rho, theta, phi];
 }
@@ -52,11 +63,11 @@ for(let i = 0; i < numStars; i++) {
     const star = new THREE.Mesh(starGeometry, starMaterial);
     
     // https://www.youtube.com/watch?v=_7Gt3Lla1pk
-    const [rho, theta, phi] = generateSphericalCoords(300, 600);
+    const [rho, theta, phi] = generateSphericalCoords(600, 800);
     
     const x = rho * Math.sin(phi) * Math.cos(theta); 
     const y = rho * Math.sin(phi) * Math.sin(theta);
-    const z = rho * Math.cos(phi);
+    const z = rho * randomSign() * Math.cos(phi);
 
     star.position.set(x, y, z);
 
