@@ -24,11 +24,11 @@ const planet = new THREE.Mesh(planetGeometry, planetMaterial);
 
 scene.add(planet);
 
-// const pointLight = new THREE.PointLight(0xffffff, 1000);
+const pointLight = new THREE.PointLight(0xffffff, 10000);
 
-// const pointLightDistance = 75;
-// pointLight.position.set(pointLightDistance, pointLightDistance, pointLightDistance);
-// scene.add(pointLight);
+const pointLightDistance = 60;
+pointLight.position.set(pointLightDistance, pointLightDistance, pointLightDistance);
+scene.add(pointLight);
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
 scene.add(directionalLight)
@@ -53,26 +53,44 @@ function generateSphericalCoords(rMin, rMax) {
 }
 
 
-
 const numStars = 1000;
+const galaxyMap = new THREE.TextureLoader().load("galaxy2.png");
 
 for(let i = 0; i < numStars; i++) {
-    const starGeometry = new THREE.SphereGeometry(1);
-    const starMaterial = new THREE.MeshStandardMaterial( {color: "white", emissive: "white", emissiveIntensity: 10000} )
+    let obj;
 
-    const star = new THREE.Mesh(starGeometry, starMaterial);
+    if (Math.random() < 0.05) { // 5% chance at galaxy replacing star
+        const galaxyMaterial = new THREE.MeshBasicMaterial({ 
+            map: galaxyMap,
+            transparent: true,
+            side: THREE.DoubleSide,
+          });
+        
+          const galaxyGeometry = new THREE.PlaneGeometry(randomRange(30,100), randomRange(30,100));
+          obj = new THREE.Mesh(galaxyGeometry, galaxyMaterial);
+
     
+
+    } else {
+        const starGeometry = new THREE.SphereGeometry(1.5);
+        const starMaterial = new THREE.MeshStandardMaterial( {color: "white", emissive: "white", emissiveIntensity: 1} )
+        obj = new THREE.Mesh(starGeometry, starMaterial);
+
+    }
+
     // https://www.youtube.com/watch?v=_7Gt3Lla1pk
     const [rho, theta, phi] = generateSphericalCoords(600, 800);
-    
+
     const x = rho * Math.sin(phi) * Math.cos(theta); 
     const y = rho * Math.sin(phi) * Math.sin(theta);
     const z = rho * randomSign() * Math.cos(phi);
 
-    star.position.set(x, y, z);
+    obj.position.set(x, y, z);
+    obj.lookAt(0,0,0);
 
+    scene.add(obj);
 
-    scene.add(star);
+    
 }
 
 
