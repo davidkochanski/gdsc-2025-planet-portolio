@@ -17,20 +17,32 @@ rootElement.appendChild(renderer.domElement);
 const controls = new OrbitControls( camera, rootElement );
 
 
+const loader = new THREE.TextureLoader();
+
+const galaxyMap = loader.load("galaxy2.png");
+const planetTexture = loader.load("planet_texture.jpg")
+const planetNormal = loader.load("planet_normal.png")
+
+
+
+
 
 const planetGeometry = new THREE.SphereGeometry(75, 32, 32);
-const planetMaterial = new THREE.MeshToonMaterial({ color: "red" });
+const planetMaterial = new THREE.MeshStandardMaterial({ map: planetTexture, normalMap: planetNormal, emissive: true, emissiveIntensity: 1000 });
 const planet = new THREE.Mesh(planetGeometry, planetMaterial);
 
 scene.add(planet);
 
-const pointLight = new THREE.PointLight(0xffffff, 10000);
+// const pointLight = new THREE.PointLight(0xffffff, 100000);
 
-const pointLightDistance = 60;
-pointLight.position.set(pointLightDistance, pointLightDistance, pointLightDistance);
-scene.add(pointLight);
+// const pointLightDistance = 1000;
+// pointLight.position.set(-pointLightDistance, -pointLightDistance, pointLightDistance);
+// scene.add(pointLight);
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+directionalLight.position.set(100, 100, 100)
+directionalLight.lookAt(0,0,0)
+
 scene.add(directionalLight)
 
 
@@ -54,7 +66,7 @@ function generateSphericalCoords(rMin, rMax) {
 
 
 const numStars = 1000;
-const galaxyMap = new THREE.TextureLoader().load("galaxy2.png");
+
 
 for(let i = 0; i < numStars; i++) {
     let obj;
@@ -96,12 +108,16 @@ for(let i = 0; i < numStars; i++) {
 
 
 
-
+let planetRotation = 0;
+const planetStep = Math.PI / 6000;
 
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
   renderer.render(scene, camera);
+
+    planetRotation += planetStep
+  planet.setRotationFromAxisAngle(new THREE.Vector3(0,1,0), planetRotation)
 }
 animate();
 
