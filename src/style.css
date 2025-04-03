@@ -2,6 +2,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: "Lato", "Arial", sans-serif;
 }
 
 #space {
@@ -9,12 +10,9 @@
     height: 100vh;
 }
 
-#back-button {
+.button {
     all:unset;
     position: absolute;
-    display: none; /* Will be displayed using JS */
-    top: 50px;
-    left: 50px;
     width: 64px;
     height: 64px;
     background-color: white;
@@ -27,12 +25,45 @@
     cursor: pointer;
 }
 
-#back-button:hover {
+#back-button {
+    display: none;
+    top: 50px;
+    left: 50px;
+}
+
+#menu-button {
+    display: block;
+    top: 50px;
+    right: 50px;
+    z-index: 100;
+}
+
+
+.button:hover {
     background-color: #333;
     color: white;
     border: 2px solid white;
 }
 
-#back-button:active {
+.button:active {
     scale: 0.95;
+}
+
+main {
+    position: absolute;
+    display: none;
+    z-index: 10;
+
+    width: 100%;
+    height: 100%;
+    background-color: #333333CC;
+
+    align-items: center;
+    justify-content: center;
+}
+
+main p {
+    color: white;
+    font-size: 18px;
+    
 }
