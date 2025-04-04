@@ -10,7 +10,7 @@ import { GITHUB, LINKEDIN, PROJECT1, PROJECT2, PROJECT3 } from './urls';
 
 const scene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(1000, window.innerWidth / window.innerHeight, 0.1, 10000);
+const camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 10000);
 camera.up.set(0,0,1);
 
 const cameraInitialDistance = 200;
@@ -170,18 +170,18 @@ const flagGeometry = new THREE.BoxGeometry(50, 50, 0);
 const flagFrontMaterial = new THREE.MeshToonMaterial({map: flagFrontMap, transparent: true});
 const flagBackMaterial = new THREE.MeshToonMaterial({map: flagBackMap, transparent: true});
 const empty = new THREE.MeshToonMaterial({color: "black"})
-const flag = new THREE.Mesh(flagGeometry, [ empty, empty, empty, empty, flagBackMaterial, flagFrontMaterial]);
+const flag = new THREE.Mesh(flagGeometry, [ empty, empty, empty, empty, flagFrontMaterial, flagBackMaterial]);
 
 
 const boardGeometry = new THREE.BoxGeometry(80, 50, 0);
 const boardFrontMaterial = new THREE.MeshBasicMaterial({map: boardFrontMap, transparent: true});
 const boardBackMaterial = new THREE.MeshBasicMaterial({map: boardBackMap, transparent: true});
-const board = new THREE.Mesh(boardGeometry, [empty, empty, empty, empty, boardFrontMaterial, boardBackMaterial]);
+const board = new THREE.Mesh(boardGeometry, [empty, empty, empty, empty,  boardBackMaterial, boardFrontMaterial]);
 
 const itemBlueprints = [{
     mesh: new THREE.Mesh(new THREE.BoxGeometry(30, 30, 30),
     new THREE.MeshBasicMaterial( { map: linkedinMap } )),
-    phi: -Math.PI/4,
+    phi: Math.PI/4,
     theta: 0,
     onclick: () => {
         window.open(LINKEDIN, "_blank");
@@ -190,7 +190,7 @@ const itemBlueprints = [{
 {
     mesh: new THREE.Mesh(new THREE.BoxGeometry(30, 30, 30),
                          new THREE.MeshBasicMaterial( { map: githubMap, emissive: true, emissiveIntensity: 100 } )),
-    phi: Math.PI/4,
+    phi: -Math.PI/4,
     theta: 0,
     onclick: () => {
         window.open(GITHUB, "_blank");
@@ -198,14 +198,14 @@ const itemBlueprints = [{
 },
 {
     mesh: board,
-    phi: -3 * Math.PI / 8,
+    phi: Math.PI/3,
     theta: Math.PI/2,
     bias: 10
 },
 
 {
     mesh: flag,
-    phi: Math.PI/3,
+    phi: -3 * Math.PI / 8,
     theta: Math.PI/2,
     bias: -5
 },
