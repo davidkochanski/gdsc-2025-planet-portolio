@@ -25,9 +25,3 @@ export function polarToCartesian(rho, theta, phi) {
     return [x,y,z];
 }
 
-export function getTangentVector(theta, phi) {
-    const x = Math.cos(theta) * Math.cos(phi);
-    const y =Math.cos(theta) * Math.sin(phi);
-    const z = -Math.sin(theta);
-    return [x,y,z];
-}
