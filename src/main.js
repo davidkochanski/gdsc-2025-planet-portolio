@@ -73,7 +73,7 @@ const project3Map = loader.load("project3.png");
 const PLANET_RADIUS = 75;
 
 const planetGeometry = new THREE.SphereGeometry(PLANET_RADIUS, 32, 32);
-const planetMaterial = new THREE.MeshStandardMaterial({ color: "#DC143C", normalMap: planetNormal, emissive: true, emissiveIntensity: 1000 });
+const planetMaterial = new THREE.MeshStandardMaterial({ color: "#DC143C", normalMap: planetNormal });
 const planet = new THREE.Mesh(planetGeometry, planetMaterial);
 scene.add(planet);
 
@@ -85,19 +85,6 @@ const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
 directionalLight.position.set(100, 100, 100)
 directionalLight.lookAt(0,0,0)
 scene.add(directionalLight)
-
-// ##############################################
-// Skybox Background
-// ##############################################
-
-const cubeLoader = new THREE.CubeTextureLoader();
-const skybox = cubeLoader.load([
-  'px.jpg', 'nx.jpg',
-  'py.jpg', 'ny.jpg',
-  'pz.jpg', 'nz.jpg'
-]);
-
-scene.background = skybox;
 
 // ##############################################
 // Stars and Galaxies
@@ -131,8 +118,20 @@ for(let i = 0; i < numStars; i++) {
     obj.lookAt(0,0,0);
 
     scene.add(obj);
-
 }
+
+// ##############################################
+// Skybox Background
+// ##############################################
+
+const cubeLoader = new THREE.CubeTextureLoader();
+const skybox = cubeLoader.load([
+  'px.jpg', 'nx.jpg',
+  'py.jpg', 'ny.jpg',
+  'pz.jpg', 'nz.jpg'
+]);
+
+scene.background = skybox;
 
 // ##############################################
 // Moon
