@@ -12,7 +12,14 @@ const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 10000);
 camera.up.set(0,0,1);
-camera.position.y = 200;
+
+const cameraDistance = 200;
+const cameraTheta = 1.5 * Math.PI;
+const cameraPhi = 0.1 * Math.PI;
+
+const [ix, iy, iz] = polarToCartesian(cameraDistance, cameraTheta, cameraPhi)
+camera.position.set(ix,iy,iz);
+
 
 const rootElement = document.getElementById("space");
 
@@ -50,6 +57,9 @@ const githubCube = loader.load("github.png")
 
 const flagFrontMap = loader.load("welcome_flag_front.png")
 const flagBackMap = loader.load("welcome_flag_back.png")
+
+const boardFrontMap = loader.load("board_front.png")
+const boardBackMap = loader.load("board_back.png")
 
 
 // ##############################################
@@ -130,21 +140,88 @@ scene.background = cube;
 
 
 
-
 // ##############################################
 // Moon
 // ##############################################
 
+const MOON_DISTANCE = 250;
+const MOON_SIZE = 24;
+const MOON_STEP = Math.PI / 600;
+const MOON_TILT = Math.PI / 3;
 
+const moonGeometry = new THREE.SphereGeometry(MOON_SIZE, 16, 16);
+const moonMaterial = new THREE.MeshStandardMaterial( {map: moonTextureMap, normalMap: moonNormalMap} )
 
+const moon = new THREE.Mesh(moonGeometry, moonMaterial);
 
+scene.add(moon);
+
+let moonTheta = 0;
+
+function updateMoon() {
+    moonTheta += MOON_STEP;
+    const theta = moonTheta;
+    const phi = MOON_TILT;
+    const rho = MOON_DISTANCE;
+
+    const [x,y,z] = polarToCartesian(rho, theta, phi)
+
+    moon.position.set(x,y,z);
+}
 
 // ##############################################
 // Define items on the planet
 // ##############################################
 
-const itemBlueprints = [
+const linkedinMesh = new THREE.Mesh(
+    new THREE.BoxGeometry(30,30,30),
+    new THREE.MeshBasicMaterial( {map: linkedinCube} )
+)
 
+const githubMesh = new THREE.Mesh(
+    new THREE.BoxGeometry(30,30,30),
+    new THREE.MeshBasicMaterial( {map: githubCube} )
+)
+
+const empty = new THREE.MeshToonMaterial({color: "black"})
+const boardGeometry = new THREE.BoxGeometry(80, 50, 0);
+const boardFrontMaterial = new THREE.MeshBasicMaterial({map: boardFrontMap, transparent: true});
+const boardBackMaterial = new THREE.MeshBasicMaterial({map: boardBackMap, transparent: true});
+const board = new THREE.Mesh(boardGeometry, [empty, empty, empty, empty,  boardBackMaterial, boardFrontMaterial]);
+// {
+//   mesh: ...
+//   theta: ...
+//   phi: ...
+//   onclick: ...
+//}
+
+
+const itemBlueprints = [
+    {
+        mesh: linkedinMesh,
+        phi: 0.25 * Math.PI,
+        theta: 0,
+        onclick: () => {
+            window.open(LINKEDIN, "_blank")
+        }
+    },
+    {
+        mesh: githubMesh,
+        phi: -0.25 * Math.PI,
+        theta: 0,
+        onclick: () => {
+            window.open(GITHUB, "_blank")
+        }
+    },
+
+    {
+        mesh: board,
+        phi: 0.33 * Math.PI,
+        theta: 0.5 * Math.PI,
+        onclick: () => {
+            window.open(GITHUB, "_blank")
+        }
+    },
 ]
 
 
@@ -155,7 +232,26 @@ const itemBlueprints = [
 const itemMeshes = []
 
 itemBlueprints.forEach((item) => {
+    const mesh = item.mesh;
+    const phi = item.phi;
+    const theta = item.theta;
+
+    mesh.geometry.computeBoundingBox();
+    const bbox = mesh.geometry.boundingBox;
+    const height = bbox.max.y - bbox.min.y;
+
+    const rho = PLANET_RADIUS + height / 2;
     
+
+    scene.add(mesh);
+
+    const [x,y,z] = polarToCartesian(rho, theta, phi);
+    mesh.position.set(x,y,z);
+
+    mesh.lookAt(0,0,0)
+    mesh.rotateX(-Math.PI/2);
+
+    itemMeshes.push(mesh);
 });
 
 
@@ -163,13 +259,40 @@ itemBlueprints.forEach((item) => {
 // Raycasting
 // ##############################################
 
-// function castRay(event) {
-//     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-//     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
 
-//     raycaster.setFromCamera(mouse, camera);
-//     return raycaster.intersectObjects(scene.children, true);
-// }
+
+function castRay(event) {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+    return raycaster.intersectObjects(scene.children, true);
+}
+
+window.addEventListener("click", (event) => {
+    const intersects = castRay(event);
+
+    if(intersects.length == 0) {
+        return;
+    }
+
+    const obj = intersects[0].object;
+
+    if(!itemMeshes.includes(obj)) {
+        return;
+    }
+
+    const idx = itemMeshes.indexOf(obj);
+    const itemInfo = itemBlueprints[idx];
+
+    if(itemInfo.onclick) {
+        itemInfo.onclick()
+    }
+})
+
+
 
 // ##############################################
 // Main Loop & Basic Resize Handling
@@ -179,14 +302,15 @@ function animate() {
     requestAnimationFrame(animate)
     renderer.render( scene, camera ); 
     controls.update();
+    updateMoon();
 }
 
 animate();
 
 
-// window.addEventListener('resize', () => {
-//     camera.aspect = rootElement.clientWidth / rootElement.clientHeight;
-//     camera.updateProjectionMatrix();
-//     controls.update();
-//     renderer.setSize(rootElement.clientWidth, rootElement.clientHeight);
-// });
+window.addEventListener('resize', () => {
+    camera.aspect = rootElement.clientWidth / rootElement.clientHeight;
+    camera.updateProjectionMatrix();
+    controls.update();
+    renderer.setSize(rootElement.clientWidth, rootElement.clientHeight);
+});
