@@ -60,10 +60,28 @@ main {
 
     align-items: center;
     justify-content: center;
+    flex-direction: column;
+    gap:15px;
+    color: white;
+
 }
 
 main p {
+    font-size: 20px;
+    max-width: 500px;
+    width: 100%;
+}
+
+main h2 {
+    font-size: 32px;
+    text-decoration: underline;
+}
+
+main a {
+    text-decoration: none;
     color: white;
-    font-size: 18px;
-    
+}
+
+main a:hover {
+    text-decoration: underline;
 }

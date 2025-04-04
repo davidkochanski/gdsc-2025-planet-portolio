@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import "./style.css";
 import { TrackballControls } from 'three/addons/controls/TrackballControls.js';
 import {generateSphericalCoords, polarToCartesian, randomRange, randomSign} from "./math"
+import { GITHUB, LINKEDIN, PROJECT1, PROJECT2, PROJECT3 } from './urls';
 
 // ##############################################
 // Initial Setup
@@ -46,8 +47,8 @@ controls.dynamicDampingFactor = 0.3;
 const loader = new THREE.TextureLoader();
 
 const galaxyMap = loader.load("galaxy.png");
-const planetTexture = loader.load("planet_texture.jpg");
-const moonTexture = loader.load("moon_texture.jpg");
+const planetMap = loader.load("planet_texture.jpg");
+const moonMap = loader.load("moon_texture.jpg");
 
 const planetNormal = loader.load("planet_normal.png");
 const moonNormal = loader.load("moon_normal.png");
@@ -55,15 +56,15 @@ const moonNormal = loader.load("moon_normal.png");
 const linkedinMap = loader.load("linkedin.png");
 const githubMap = loader.load("github.png");
 
-const flagFront = loader.load("welcome_flag_front.png");
-const flagBack = loader.load("welcome_flag_back.png");
+const flagFrontMap = loader.load("welcome_flag_front.png");
+const flagBackMap = loader.load("welcome_flag_back.png");
 
-const boardFront = loader.load("board_front.png");
-const boardBack = loader.load("board_back.png");
+const boardFrontMap = loader.load("board_front.png");
+const boardBackMap = loader.load("board_back.png");
 
-const project1Cube = loader.load("project1.png");
-const project2Cube = loader.load("project2.png");
-const project3Cube = loader.load("project3.png");
+const project1Map = loader.load("project1.png");
+const project2Map = loader.load("project2.png");
+const project3Map = loader.load("project3.png");
 
 // ##############################################
 // Main Planet
@@ -137,23 +138,25 @@ for(let i = 0; i < numStars; i++) {
 // Moon
 // ##############################################
 
-const moonGeometry = new THREE.SphereGeometry(24, 16, 16);
-const moonMaterial = new THREE.MeshStandardMaterial({ map: moonTexture, normalMap: moonNormal});
+const MOON_DISTANCE = 300;
+const MOON_SIZE = 24;
+const MOON_STEP = Math.PI / 1200
+const MOON_TILT = Math.PI / 3
+
+const moonGeometry = new THREE.SphereGeometry(MOON_SIZE, 16, 16);
+const moonMaterial = new THREE.MeshStandardMaterial({ map: moonMap, normalMap: moonNormal});
 const moon = new THREE.Mesh(moonGeometry, moonMaterial);
 scene.add(moon);
 
 let moonAngle = 0;
-const moonDistance = 300;
 
 // Will be called every frame
 function updateMoonPosition() {
-    moonAngle += Math.PI / 1200;
+    moonAngle += MOON_STEP;
     const theta = moonAngle;
-    const phi = Math.PI/3;
+    const phi = MOON_TILT;
     
-    const x = moonDistance * Math.sin(theta) * Math.cos(phi); 
-    const y = moonDistance * Math.sin(theta) * Math.sin(phi);
-    const z = moonDistance * Math.cos(theta)
+    const [x,y,z] = polarToCartesian(MOON_DISTANCE, theta, phi)  
     
     moon.position.set(x, y, z);
 }
@@ -164,34 +167,33 @@ function updateMoonPosition() {
 
 const flagGeometry = new THREE.BoxGeometry(50, 50, 0);
 
-const flagFrontMaterial = new THREE.MeshToonMaterial({map: flagFront, transparent: true});
-const flagBackMaterial = new THREE.MeshToonMaterial({map: flagBack, transparent: true});
+const flagFrontMaterial = new THREE.MeshToonMaterial({map: flagFrontMap, transparent: true});
+const flagBackMaterial = new THREE.MeshToonMaterial({map: flagBackMap, transparent: true});
 const empty = new THREE.MeshToonMaterial({color: "black"})
 const flag = new THREE.Mesh(flagGeometry, [ empty, empty, empty, empty, flagBackMaterial, flagFrontMaterial]);
 
 
 const boardGeometry = new THREE.BoxGeometry(80, 50, 0);
-
-const boardFrontMaterial = new THREE.MeshToonMaterial({map: boardFront, transparent: true});
-const boardBackMaterial = new THREE.MeshToonMaterial({map: boardBack, transparent: true});
+const boardFrontMaterial = new THREE.MeshBasicMaterial({map: boardFrontMap, transparent: true});
+const boardBackMaterial = new THREE.MeshBasicMaterial({map: boardBackMap, transparent: true});
 const board = new THREE.Mesh(boardGeometry, [empty, empty, empty, empty, boardFrontMaterial, boardBackMaterial]);
 
 const itemBlueprints = [{
     mesh: new THREE.Mesh(new THREE.BoxGeometry(30, 30, 30),
-    new THREE.MeshToonMaterial( { map: linkedinMap, emissive: true, emissiveIntensity: 10} )),
+    new THREE.MeshBasicMaterial( { map: linkedinMap } )),
     phi: -Math.PI/4,
     theta: 0,
     onclick: () => {
-        window.open("https://www.linkedin.com/in/davidkochanski/", "_blank");
+        window.open(LINKEDIN, "_blank");
     }
 },
 {
     mesh: new THREE.Mesh(new THREE.BoxGeometry(30, 30, 30),
-                         new THREE.MeshToonMaterial( { map: githubMap, emissive: true, emissiveIntensity: 10} )),
+                         new THREE.MeshBasicMaterial( { map: githubMap, emissive: true, emissiveIntensity: 100 } )),
     phi: Math.PI/4,
     theta: 0,
     onclick: () => {
-        window.open("https://github.com/davidkochanski", "_blank");
+        window.open(GITHUB, "_blank");
     }
 },
 {
@@ -210,31 +212,31 @@ const itemBlueprints = [{
 
 {
     mesh: new THREE.Mesh(new THREE.BoxGeometry(30, 30, 30),
-                         new THREE.MeshToonMaterial( { map: loader.load("project1.png"), emissive: true, emissiveIntensity: 10} )),
+                         new THREE.MeshBasicMaterial( { map: project1Map } )),
     phi: 0.75 * Math.PI,
     theta: 0,
     onclick: () => {
-        window.open("https://github.com/davidkochanski", "_blank");
+        window.open(PROJECT1, "_blank");
     }
 },
 
 {
     mesh: new THREE.Mesh(new THREE.BoxGeometry(30, 30, 30),
-                         new THREE.MeshToonMaterial( { map: loader.load("project2.png"), emissive: true, emissiveIntensity: 10} )),
+                         new THREE.MeshBasicMaterial( { map: project2Map } )),
     phi: 1.25 * Math.PI,
     theta: 0,
     onclick: () => {
-        window.open("https://github.com/davidkochanski", "_blank");
+        window.open(PROJECT2, "_blank");
     }
 },
 
 {
     mesh: new THREE.Mesh(new THREE.BoxGeometry(30, 30, 30),
-                         new THREE.MeshToonMaterial( { map: loader.load("project3.png"), emissive: true, emissiveIntensity: 10} )),
+                         new THREE.MeshBasicMaterial( { map: project3Map } )),
     phi: Math.PI,
     theta: 0,
     onclick: () => {
-        window.open("https://github.com/davidkochanski", "_blank");
+        window.open(PROJECT3, "_blank");
     }
 },
 ]
