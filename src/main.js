@@ -8,7 +8,16 @@ import {generateSphericalCoords, polarToCartesian, randomRange, randomSign, getT
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(1000, window.innerWidth / window.innerHeight, 0.1, 10000);
-camera.position.z = 200;
+camera.up.set(0,0,1);
+
+const cameraInitialDistance = 200;
+const cameraInitialTheta = 1.5 * Math.PI;
+const cameraInitialPhi = 0.1 * Math.PI;
+
+const [ix, iy, iz] = polarToCartesian(cameraInitialDistance, cameraInitialTheta, cameraInitialPhi)
+camera.position.set(ix, iy, iz)
+
+
 
 const rootElement = document.getElementById("space");
 
@@ -19,24 +28,28 @@ rootElement.appendChild(renderer.domElement);
 const controls = new TrackballControls(camera, renderer.domElement);
 controls.rotateSpeed = 3.0;
 controls.zoomSpeed = 0.1;
-controls.minDistance = 0;
+controls.minDistance = 100;
 controls.maxDistance = 1000;
 controls.panSpeed = 0.8;
 controls.noZoom = false;
 controls.noPan = true;
 controls.dynamicDampingFactor = 0.3;
 
+
 const loader = new THREE.TextureLoader();
 
-const galaxyMap = loader.load("galaxy2.png");
-const planetTexture = loader.load("planet_texture.jpg")
-const moonTexture = loader.load("moon_texture.jpg")
+const galaxyMap = loader.load("galaxy.png");
+const planetTexture = loader.load("planet_texture.jpg");
+const moonTexture = loader.load("moon_texture.jpg");
 
-const planetNormal = loader.load("planet_normal.png")
-const moonNormal = loader.load("moon_normal.png")
+const planetNormal = loader.load("planet_normal.png");
+const moonNormal = loader.load("moon_normal.png");
 
-const flagFront = loader.load("welcome_flag_front.png")
-const flagBack = loader.load("welcome_flag_back.png")
+const flagFront = loader.load("welcome_flag_front.png");
+const flagBack = loader.load("welcome_flag_back.png");
+
+const boardFront = loader.load("board_front.png");
+const boardBack = loader.load("board_back.png");
 
 
 const PLANET_RADIUS = 75;
@@ -48,11 +61,6 @@ const planet = new THREE.Mesh(planetGeometry, planetMaterial);
 
 scene.add(planet);
 
-// const pointLight = new THREE.PointLight(0xffffff, 100000);
-
-// const pointLightDistance = 1000;
-// pointLight.position.set(-pointLightDistance, -pointLightDistance, pointLightDistance);
-// scene.add(pointLight);
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
 directionalLight.position.set(100, 100, 100)
@@ -69,10 +77,6 @@ const skybox = cubeLoader.load([
 ]);
 
 scene.background = skybox;
-
-
-
-
 
 
 const numStars = 1000;
@@ -129,31 +133,38 @@ function updateMoonPosition() {
 }
 
 
-const infoBlock = new THREE.Mesh(new THREE.BoxGeometry(30,30,30),
-                                 new THREE.MeshToonMaterial( { map: loader.load("arrow.png"), color: "blue", emissive: true, emissiveIntensity: 10} ))
+const flagGeometry = new THREE.BoxGeometry(50, 50, 0);
 
 const flagFrontMaterial = new THREE.MeshToonMaterial({map: flagFront, transparent: true});
 const flagBackMaterial = new THREE.MeshToonMaterial({map: flagBack, transparent: true});
 
-const flagGeometry = new THREE.BoxGeometry(50, 50, 0);
 
 const empty = new THREE.MeshToonMaterial({color: "black"})
+
 
 const flag = new THREE.Mesh(flagGeometry, [  
     empty,
     empty,
     empty,
     empty,
-    flagFrontMaterial,
-    flagBackMaterial
+    flagBackMaterial,
+    flagFrontMaterial
 ]);
 
+
+const boardGeometry = new THREE.BoxGeometry(80, 50, 0);
+
+const boardFrontMaterial = new THREE.MeshToonMaterial({map: boardFront, transparent: true});
+const boardBackMaterial = new THREE.MeshToonMaterial({map: boardBack, transparent: true});
+
+
+const board = new THREE.Mesh(boardGeometry, [empty, empty, empty, empty, boardFrontMaterial, boardBackMaterial])
 
 const itemBlueprints = [{
     mesh: new THREE.Mesh(new THREE.BoxGeometry(30, 30, 30),
                          new THREE.MeshToonMaterial( { map: loader.load("linkedin.png"), emissive: true, emissiveIntensity: 10} )),
-    phi: Math.PI/8,
-    theta: Math.PI/10,
+    phi: -Math.PI/4,
+    theta: 0,
     onclick: () => {
         window.open("https://www.linkedin.com/in/davidkochanski/", "_blank");
     }
@@ -161,22 +172,24 @@ const itemBlueprints = [{
 {
     mesh: new THREE.Mesh(new THREE.BoxGeometry(30, 30, 30),
                          new THREE.MeshToonMaterial( { map: loader.load("github.png"), emissive: true, emissiveIntensity: 10} )),
-    phi: Math.PI/8,
-    theta: Math.PI,
+    phi: Math.PI/4,
+    theta: 0,
     onclick: () => {
         window.open("https://github.com/davidkochanski", "_blank");
     }
 },
 {
-    mesh: infoBlock,
-    phi: Math.PI/3,
+    mesh: board,
+    phi: -3 * Math.PI / 8,
     theta: Math.PI/2
+
 },
 
 {
     mesh: flag,
-    phi: 10 * Math.PI / 7,
-    theta: Math.PI/2
+    phi: Math.PI/3,
+    theta: Math.PI/2,
+    bias: -5
 },
 ]
 
@@ -195,8 +208,12 @@ itemBlueprints.forEach((item) => {
     const bbox = mesh.geometry.boundingBox;
     const height = bbox.max.y - bbox.min.y;
 
-    const r = PLANET_RADIUS + height / 2;
+    let r = PLANET_RADIUS + height / 2;
 
+    if(item.bias) {
+        r += item.bias;
+    }
+    
     const x = r * Math.sin(phi) * Math.cos(theta); 
     const y = r * Math.sin(phi) * Math.sin(theta);
     const z = r * Math.cos(phi);
@@ -226,7 +243,6 @@ window.addEventListener('mousemove', (event) => {
 
 
     for(let i = 0; i < itemBeingHighlighted.length; i++) {
-
         if(itemBeingHighlighted[i]) {
             itemMeshes[i].scale.set(1.1, 1.1, 1.1);
         } else {
@@ -243,22 +259,15 @@ window.addEventListener('mousemove', (event) => {
         if(!itemMeshes.includes(obj)) { // only highlight items on the planet
             return;
         }
-        const idx = itemMeshes.indexOf(obj);
+
+        const idx = itemMeshes.indexOf(obj); // only highlight items that have some defined action
+        if(!itemBlueprints[idx].onclick) {
+            return;
+        }
         
         itemBeingHighlighted[idx] = true;
         document.documentElement.style.cursor = "pointer";
     }
-})
-
-let canMoveCamera = true;
-let prevX = 0;
-let prevY = 0;
-let prevZ = 0;
-
-const backButton = document.getElementById("back-button");
-backButton.addEventListener("click", () => {
-    resetCamera();
-    backButton.style.display = "none";
 })
 
 
@@ -283,42 +292,6 @@ window.addEventListener('click', (event) => {
             itemInfo.onclick();
             return;
         }
-        // Otherwise, move the camera so it's level with the planet and
-        // looking at the item on the planet.
-        
-        canMoveCamera = false;
-        backButton.style.display = "block";
-
-
-        prevX = camera.position.x;
-        prevY = camera.position.y;
-        prevZ = camera.position.z;
-
-        const objPosition = obj.position.clone();
-
-
-        const theta = itemInfo.theta;
-        const phi = itemInfo.phi;
-
-        const [x,y,z] = getTangentVector(theta, phi);
-
-        const tangentVector = new THREE.Vector3(x,y,z).normalize();
-
-        obj.geometry.computeBoundingBox(); // call this first
-        const bbox = obj.geometry.boundingBox;
-        const width = bbox.max.x - bbox.min.x;
-        const distance = 50 + width / 2
-
-        const dx = objPosition.x + distance * tangentVector.x
-        const dy = objPosition.y + tangentVector.y
-        const dz = objPosition.z + distance * tangentVector.z
-        camera.position.set(dx, dy, dz)
-
-        const [nx, ny, nz] = polarToCartesian(1, theta, phi);
-        camera.up.set(-nx, -ny, -nz)
-
-        controls.target.set(objPosition.x, objPosition.y, objPosition.z)
-        controls.update();
     }
 })
 
@@ -328,17 +301,10 @@ window.addEventListener("keydown", (event) => {
     }
 })
 
-function resetCamera() {
-    canMoveCamera = true;
-    camera.position.set(prevX, prevY, prevZ)
-    controls.target.set(0,0,0)
-}
 
 function animate() {
     requestAnimationFrame(animate);
-    if(canMoveCamera) {
-        controls.update();
-    }
+    controls.update();
     renderer.render(scene, camera);
     updateMoonPosition();
 }
