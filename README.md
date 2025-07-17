@@ -1,3 +1,11 @@
+# Planet Portfolio
+
+An interactive and personalizable THREE.js personal portfolio, created for presentation at [GDSC](https://www.gdscutm.com/).
+
+![Poster](poster.png)
+
+## Prep
+
 To begin,
 
 ```
